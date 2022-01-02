@@ -6,3 +6,13 @@
                   #(Integer/toHexString %)
                   #(bit-and 0xff %)))
        (apply str)))
+
+(defn map-add [m k n]
+  (if (m k)
+    (update m k + n)
+    (assoc m k n)))
+
+(defn map-conj [m k v]
+  (if (m k)
+    (update m k conj v)
+    (assoc m k [v])))
