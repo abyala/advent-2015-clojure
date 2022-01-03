@@ -1,5 +1,4 @@
-(ns advent-2015-clojure.day11
-  (:require [clojure.string :as str]))
+(ns advent-2015-clojure.day11)
 
 (def forbidden-rotations {\i \j, \o \p, \l \m})
 (def forbidden-characters (set (keys forbidden-rotations)))
