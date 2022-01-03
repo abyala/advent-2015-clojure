@@ -1,6 +1,8 @@
 (ns advent-2015-clojure.utils)
 
-(defn parse-long [s] (Long/parseLong s))
+(defn parse-long [s] (try
+                       (Long/parseLong s)
+                       (catch NumberFormatException _ nil)))
 
 (defn bytes->hex [b]
   (->> b
