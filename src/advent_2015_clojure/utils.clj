@@ -1,5 +1,7 @@
 (ns advent-2015-clojure.utils)
 
+(defn parse-long [s] (Long/parseLong s))
+
 (defn bytes->hex [b]
   (->> b
        (map (comp #(if (= 1 (count %)) (str "0" %) %)
