@@ -20,3 +20,6 @@
   (if (m k)
     (update m k conj v)
     (assoc m k [v])))
+
+(defn keep-indexes-when [f coll]
+  (keep-indexed (fn [idx v] (when (f v) idx)) coll))
