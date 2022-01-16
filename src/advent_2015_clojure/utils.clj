@@ -1,4 +1,5 @@
-(ns advent-2015-clojure.utils)
+(ns advent-2015-clojure.utils
+  (:require [clojure.string :as str]))
 
 (defn parse-long [s] (try
                        (Long/parseLong s)
@@ -23,3 +24,11 @@
 
 (defn keep-indexes-when [f coll]
   (keep-indexed (fn [idx v] (when (f v) idx)) coll))
+
+(defn split-blank-line
+  "Given an input string, returns a sequence of sub-strings, separated by a completely
+  blank string. This function preserves any newlines between blank lines, and it filters
+  out Windows' \"\r\" characters."
+  [input]
+  (-> (str/replace input "\r" "")
+      (str/split #"\n\n")))
