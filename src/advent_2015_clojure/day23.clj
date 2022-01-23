@@ -8,8 +8,7 @@
 (defn register-instruction [f state] (-> state
                                          (update :registers f)
                                          (update :offset inc)))
-(defn jump-instruction [f state] (-> state
-                                     (update :offset + (or (f (:registers state)) 1))))
+(defn jump-instruction [f state] (update state :offset + (or (f (:registers state)) 1)))
 
 (defn parse-instruction [line]
   (let [[op & arg-seq] (re-seq #"[^ ,]+" line)
@@ -25,7 +24,7 @@
       "jio" (partial jump-instruction #(when (= (% arg0) 1) arg1)))))
 
 (defn parse-input [input]
-  (new-state (mapv parse-instruction (str/split-lines input))))
+  (->> input str/split-lines (mapv parse-instruction) new-state))
 
 (defn current-instruction [state]
   (let [{:keys [instructions offset]} state]
@@ -41,5 +40,5 @@
        last))
 
 (defn final-register-b [state] (get-in (run-program state) [:registers "b"]))
-(defn part1 [input] (final-register-b (parse-input input)))
-(defn part2 [input] (final-register-b (assoc-in (parse-input input) [:registers "a"] 1)))
+(defn part1 [input] (-> input parse-input final-register-b))
+(defn part2 [input] (-> input parse-input (assoc-in [:registers "a"] 1) final-register-b))
