@@ -39,6 +39,6 @@
        (take-while some?)
        last))
 
-(defn final-register-b [state] (get-in (run-program state) [:registers "b"]))
+(defn final-register-b [state] (-> state run-program (get-in [:registers "b"])))
 (defn part1 [input] (-> input parse-input final-register-b))
 (defn part2 [input] (-> input parse-input (assoc-in [:registers "a"] 1) final-register-b))
