@@ -5,13 +5,15 @@
 ;;        :boss {:hit-points :damage},
 ;;        :effects [],
 ;;        :mana-spent 0,
+;;        :mode :easy|hard,
 ;;        :winner :player|:boss}
 
-(defn create-game [boss-hit-points boss-damage]
+(defn create-game [mode boss-hit-points boss-damage]
   {:player  {:hit-points 50, :mana 500, :armor 0}
    :boss    {:hit-points boss-hit-points, :damage boss-damage}
-   :effects {}, :mana-spent 0})
+   :effects {}, :mana-spent 0, :mode mode})
 
+(defn game-mode [game] (:mode game))
 (defn add-mana [game amount]
   (update-in game [:player :mana] + amount))
 (defn cast-spell [game cost]
@@ -94,32 +96,32 @@
         damage (max (- base-damage armor) 0)]
     (hit-player game damage)))
 
-(defn take-turn [mode game]
+(defn take-turn [game]
   (let [prep-game (fn [g] (-> g (set-armor 0) apply-effects))
-        before-action (-> (if (= mode :hard) (hit-player game 1) game)
+        before-action (-> (if (= (game-mode game) :hard) (hit-player game 1) game)
                           prep-game)]
     (if (winner before-action)
       [before-action]
       (->> (cast-possible-spells before-action)
            (map (fn [g] (if (winner g) g (-> g prep-game boss-attack))))))))
 
-(defn play-all-games [mode starting-game]
+(defn play-all-games [starting-game]
   (loop [playing (list starting-game), seen #{}, finished #{}]
     (let [[game & next-games] playing]
       (cond
         (nil? game) finished
         (seen game) (recur next-games seen finished)
         (winner game) (recur next-games (conj seen game) (conj finished game))
-        :else (recur (apply conj next-games (take-turn mode game))
+        :else (recur (apply conj next-games (take-turn game))
                      (conj seen game)
                      finished)))))
 
 (defn least-mana-to-win [mode boss-hit-points boss-attack]
-  (->> (create-game boss-hit-points boss-attack)
-       (play-all-games mode)
+  (->> (create-game mode boss-hit-points boss-attack)
+       play-all-games
        (filter #(= :player (winner %)))
        (map :mana-spent)
-       (apply min)))
+       (reduce min)))
 
 (def part1 (partial least-mana-to-win :easy))
 (def part2 (partial least-mana-to-win :hard))

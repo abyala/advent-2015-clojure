@@ -5,41 +5,41 @@
 
 (def puzzle-hit-points 51)
 (def puzzle-damage 9)
-(def simple-game (create-game 30 3))
+(def simple-game (create-game :easy 30 3))
 
 (deftest cast-magic-missile-test
   (is (= (cast simple-game :magic-missile)
          {:player  {:hit-points 50, :mana 447, :armor 0}
           :boss    {:hit-points 26, :damage 3}
-          :effects {}, :mana-spent 53}))
+          :effects {}, :mana-spent 53, :mode :easy}))
   (is (= (-> simple-game (cast :magic-missile) (cast :magic-missile))
          {:player  {:hit-points 50, :mana 394, :armor 0}
           :boss    {:hit-points 22, :damage 3}
-          :effects {}, :mana-spent 106})))
+          :effects {}, :mana-spent 106, :mode :easy})))
 
 (deftest cast-drain-test
   (is (= (cast simple-game :drain)
          {:player  {:hit-points 52, :mana 427, :armor 0}
           :boss    {:hit-points 28, :damage 3}
-          :effects {}, :mana-spent 73})))
+          :effects {}, :mana-spent 73, :mode :easy})))
 
 (deftest cast-shield-test
   (is (= (cast simple-game :shield)
          {:player  {:hit-points 50, :mana 387, :armor 0}
           :boss    {:hit-points 30, :damage 3}
-          :effects {:shield 6}, :mana-spent 113})))
+          :effects {:shield 6}, :mana-spent 113, :mode :easy})))
 
 (deftest cast-poison-test
   (is (= (cast simple-game :poison)
          {:player  {:hit-points 50, :mana 327, :armor 0}
           :boss    {:hit-points 30, :damage 3}
-          :effects {:poison 6}, :mana-spent 173})))
+          :effects {:poison 6}, :mana-spent 173, :mode :easy})))
 
 (deftest cast-recharge-test
   (is (= (cast simple-game :recharge)
          {:player  {:hit-points 50, :mana 271, :armor 0}
           :boss    {:hit-points 30, :damage 3}
-          :effects {:recharge 5}, :mana-spent 229})))
+          :effects {:recharge 5}, :mana-spent 229, :mode :easy})))
 
 (deftest apply-effects-test
   (testing "All effects"
@@ -51,14 +51,14 @@
                (apply-effects))
            {:player  {:hit-points 50, :mana 186, :armor 7}
             :boss    {:hit-points 27, :damage 3}
-            :effects {:shield 5, :poison 5, :recharge 4}, :mana-spent 515})))
+            :effects {:shield 5, :poison 5, :recharge 4}, :mana-spent 515, :mode :easy})))
   (testing "Removing expired effects"
     (is (= (-> simple-game
                (assoc :effects {:shield 1, :poison 2})
                apply-effects)
            {:player  {:hit-points 50, :mana 500, :armor 7}
             :boss    {:hit-points 27, :damage 3}
-            :effects {:poison 1}, :mana-spent 0}))))
+            :effects {:poison 1}, :mana-spent 0, :mode :easy}))))
 
 (deftest cast-possible-spells-test
   (testing "Only mana for magic missile"
@@ -69,7 +69,7 @@
       (is (= (first games)
              {:player  {:hit-points 50, :mana 7, :armor 0}
               :boss    {:hit-points 26, :damage 3}
-              :effects {}, :mana-spent 53}))))
+              :effects {}, :mana-spent 53, :mode :easy}))))
   (testing "Shield already in effect"
     (let [games (-> simple-game
                     (add-mana -300)
@@ -81,7 +81,7 @@
 
 (deftest take-turn-test
   (testing "Opening turn"
-    (let [games (take-turn :easy simple-game)]
+    (let [games (take-turn simple-game)]
       (is (= 5 (count games)))
       (is (= [53 73 113 173 229]
              (map :mana-spent games)))
