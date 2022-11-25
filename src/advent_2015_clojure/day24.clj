@@ -8,50 +8,39 @@
        (map #(Long/parseLong %))
        (sort-by -)))
 
-(defn box-target [boxes]
-  (/ (reduce + boxes) 3))
+(defn box-target [num-groups boxes]
+  (/ (reduce + boxes) num-groups))
 
-(defn groups-summing [boxes sum]
-  (when-some [box (first boxes)]
-    (cond
-      (= box sum) [#{box}]
-      (> box sum) (groups-summing (rest boxes) sum)
-      :else (concat (map #(conj % box) (groups-summing (rest boxes) (- sum box)))
-                    (groups-summing (rest boxes) sum)))))
 (def groups-summing
   (memoize (fn [boxes sum]
-             (when-some [box (first boxes)]
-               (cond
-                 (= box sum) [#{box}]
-                 (> box sum) (groups-summing (rest boxes) sum)
-                 :else (concat (map #(conj % box) (groups-summing (rest boxes) (- sum box)))
-                               (groups-summing (rest boxes) sum)))))))
-
-(defn box-triple [boxes groups group]
-  (->> groups
-       (keep #(when (set/subset? % boxes)
-                [group % (set/difference boxes %)]))
-       first))
-
-(defn box-allocations [boxes target]
-  (let [groups (groups-summing boxes target)]
-    (keep #(box-triple (set/difference boxes %) groups %) groups)))
-
-(defn box-allocations [boxes target]
-  (loop [groups (set (groups-summing boxes target)), found ()]
-    (if-some [group (first groups)]
-      (if-some [triple (box-triple (set/difference boxes group) groups group)]
-        (recur (apply disj groups triple) (conj found triple))
-        (recur (disj groups group) found))
-      found)))
+     (when-some [box (first boxes)]
+       (cond (= box sum) (concat [#{box}] (groups-summing (rest boxes) sum))
+             (> box sum) (groups-summing (rest boxes) sum)
+             :else (concat (map #(conj % box) (groups-summing (rest boxes) (- sum box)))
+                           (groups-summing (rest boxes) sum)))))))
 
 (def quantum-entanglement (partial transduce (map bigint) *))
 
-(defn part1 [input]
+(defn sorted-groups [groups]
+  (->> groups
+       (map #(vector [(count %) (quantum-entanglement %)] %))
+       (sort-by first)
+       (map second)))
+
+(defn splittable-groups? [boxes-used num-groups groups]
+  (let [remaining (remove #(seq (set/intersection % boxes-used)) groups)]
+    (if (zero? num-groups)
+      (empty? remaining)
+      (some #(splittable-groups? % (dec num-groups) remaining) remaining))))
+
+(defn solve [num-groups input]
   (let [boxes (parse-input input)
-        target (box-target boxes)
-        allocations (box-allocations (set boxes) target)]
-    (->> (mapcat identity allocations)
-         (sort-by (juxt count quantum-entanglement))
+        target (box-target num-groups boxes)
+        groups (sorted-groups (groups-summing boxes target))]
+    (->> groups
+         (filter #(splittable-groups? % (dec num-groups) groups))
          first
          quantum-entanglement)))
+
+(defn part1 [input] (solve 3 input))
+(defn part2 [input] (solve 4 input))
